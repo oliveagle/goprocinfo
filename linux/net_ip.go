@@ -43,6 +43,14 @@ var tcp_st_map = map[int]string{
 	12: "UNKNOWN",
 }
 
+func GetTcpStatusText(st int) string{
+    if v, ok := tcp_st_map[st];ok == true{
+        return v
+    } else {
+        return "UNKNOWN"
+    }
+}
+
 type NetIPDecoder func(string) (string, error) // Either NetIPv4Decoder or NetIPv6Decoder
 
 type NetSocket struct {
@@ -110,11 +118,7 @@ func parseNetSocket(f []string, ip NetIPDecoder) (*NetSocket, error) {
 	socket.Status = uint8(s)
 	socket.Uid = uint32(u)
 
-    if v, ok := tcp_st_map[int(s)];ok == true{
-        socket.StatusText = v
-    } else {
-        socket.StatusText = "UNKNOWN"
-    }
+    socket.StatusText = GetTcpStatusText(int(s))
 
 	return socket, nil
 }
