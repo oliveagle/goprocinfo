@@ -13,12 +13,43 @@ var (
 	ipv6RegExp = regexp.MustCompile("^[0-9a-fA-F]{32}:[0-9a-fA-F]{4}$") // Regex for NetIPv6Decoder
 )
 
+const (
+	TCP_ST_ESTABLISHED = 1 << iota
+	TCP_ST_SYN_SENT
+	TCP_ST_SYN_RECV
+	TCP_ST_FIN_WAIT1
+	TCP_ST_FIN_WAIT2
+	TCP_ST_TIME_WAIT
+	TCP_ST_CLOSE
+	TCP_ST_CLOSE_WAIT
+	TCP_ST_LAST_ACK
+	TCP_ST_LISTEN
+	TCP_ST_CLOSING
+	TCP_ST_UNKNOWN
+)
+
+var tcp_st_map = map[int]string{
+	1:  "ESTABLISHED",
+	2:  "SYN_SENT",
+	3:  "SYN_RECV",
+	4:  "FIN_WAIT1",
+	5:  "FIN_WAIT2",
+	6:  "TIME_WAIT",
+	7:  "CLOSE",
+	8:  "CLOSE_WAIT",
+	9:  "LAST_ACK",
+	10: "LISTEN",
+	11: "CLOSING",
+	12: "UNKNOWN",
+}
+
 type NetIPDecoder func(string) (string, error) // Either NetIPv4Decoder or NetIPv6Decoder
 
 type NetSocket struct {
 	LocalAddress         string `json:"local_address"`
 	RemoteAddress        string `json:"remote_address"`
 	Status               uint8  `json:"st"`
+    StatusText           string `json:"st_text"`
 	TxQueue              uint64 `json:"tx_queue"`
 	RxQueue              uint64 `json:"rx_queue"`
 	Uid                  uint32 `json:"uid"`
@@ -78,6 +109,12 @@ func parseNetSocket(f []string, ip NetIPDecoder) (*NetSocket, error) {
 
 	socket.Status = uint8(s)
 	socket.Uid = uint32(u)
+
+    if v, ok := tcp_st_map[int(s)];ok == true{
+        socket.StatusText = v
+    } else {
+        socket.StatusText = "UNKNOWN"
+    }
 
 	return socket, nil
 }
